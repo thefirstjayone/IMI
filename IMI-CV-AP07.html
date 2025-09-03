@@ -1,6 +1,138 @@
-Property of IMI
-Device ID: IMI-CV-AP07
-Device Type: Air Purifier
-Device Location: Shyam Brahmjyoti Cave
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign up</title>
+  <meta name="description" content="Static signup form that emails submissions via Formspree (no server)" />
+  <style>
+    :root { --bg:#f7f7fb; --card:#fff; --text:#111; --muted:#555; --border:#e5e7eb; --ok:#0a6b00; --err:#b00020; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--text); background: var(--bg); display: grid; place-items: center; }
+    .card { width: min(540px, 92vw); background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.06); padding: 22px; }
+    header { margin-bottom: 14px; }
+    h1 { margin: 0 0 6px; font-size: 1.5rem; }
+    p.sub { margin: 0; color: var(--muted); }
+    form { margin-top: 10px; }
+    label { display: block; font-size: .92rem; margin: 14px 0 6px; }
+    input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; }
+    input:focus { outline: none; border-color: #9aa3af; box-shadow: 0 0 0 3px rgba(147,197,253,.35); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    button { margin-top: 18px; width: 100%; padding: 12px 14px; border: 0; border-radius: 10px; font-size: 1rem; cursor: pointer; background: var(--text); color: #fff; }
+    button[disabled] { opacity: .6; cursor: not-allowed; }
+    .msg { margin-top: 12px; font-size: .95rem; min-height: 1.2em; }
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
+    footer { margin-top: 16px; font-size: .85rem; color: var(--muted); text-align: center; }
+    .hide { display: none !important; }
+  </style>
+  <!--
+    HOW TO USE (GitHub Pages + Formspree)
 
-If found, contact: +91-98162-37859
+    Formspree gives you a form endpoint that emails you each submission—no server needed.
+    Steps (one‑time):
+      1) Go to https://formspree.io, create an account, and create a new form.
+      2) Copy your endpoint, which looks like: https://formspree.io/f/abcdwxyz
+      3) Paste it into ENDPOINT below. Done.
+
+    Notes:
+      • Free tier usually requires verifying your email and may show a simple confirmation step on first submission.
+      • Spam protection: this page includes a honeypot (hp). You can also enable reCAPTCHA in Formspree if desired.
+      • If you prefer another backend-as-a-form (Basin, Getform, Formsubmit, Web3Forms), replace ENDPOINT accordingly.
+  -->
+</head>
+<body>
+  <main class="card" role="main">
+    <header>
+      <h1>Set up your Air Purifier</h1>
+      <p class="sub">Enter your name, email, and mobile number to proceed.</p>
+    </header>
+
+    <form id="signupForm" novalidate>
+      <label for="name">Name</label>
+      <input id="name" name="name" autocomplete="name" required aria-required="true" />
+
+      <div class="row">
+        <div>
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required aria-required="true" />
+        </div>
+        <div>
+          <label for="phone">Mobile</label>
+          <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" />
+        </div>
+      </div>
+
+      <!-- Honeypot (hidden to humans, traps bots) -->
+      <div class="hide" aria-hidden="true">
+        <label for="hp">Leave this field empty</label>
+        <input id="hp" name="hp" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <button type="submit" id="btn">Connect</button>
+      <div class="msg" id="msg" aria-live="polite"></div>
+    </form>
+
+    <footer>
+      
+    </footer>
+  </main>
+
+  <noscript>
+    <p style="text-align:center;color:#b00020;margin-top:10px;">This form needs JavaScript enabled.</p>
+  </noscript>
+
+  <script>
+    // 1) PASTE your Formspree endpoint here
+    //    Looks like: https://formspree.io/f/abcdwxyz
+    const ENDPOINT = "https://formspree.io/f/xovnpawg";
+
+    const $ = (q) => document.querySelector(q);
+    const form = $('#signupForm');
+    const btn = $('#btn');
+    const msg = $('#msg');
+
+    function validateEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+      const phone = form.phone.value.trim();
+      const hp = form.hp.value.trim();
+
+      if (!name) { msg.textContent = 'Please enter your name.'; msg.className = 'msg err'; form.name.focus(); return; }
+      if (!email || !validateEmail(email)) { msg.textContent = 'Please enter a valid email.'; msg.className = 'msg err'; form.email.focus(); return; }
+
+      btn.disabled = true; btn.textContent = 'Sending…';
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, _subject: `New signup: ${name}`, _replyto: email, hp })
+        });
+
+        if (res.ok) {
+          form.reset();
+          msg.textContent = 'Set up error. Please try again.';
+          msg.className = 'msg ok';
+        } else {
+          const data = await res.json().catch(() => ({}));
+          const err = data?.errors?.map(e => e.message).join('; ') || data?.message || 'Submission failed.';
+          msg.textContent = err;
+          msg.className = 'msg err';
+        }
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'Could not send right now. Please try again.';
+        msg.className = 'msg err';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Sign up';
+      }
+    });
+  </script>
+</body>
+</html>
